@@ -42,5 +42,5 @@ func main() {
 	r.POST("/compare-verification-code", account.CompareVerificationCode)
 	r.PUT("/edit-password/", account.EditPassword)
 	r.POST("/login", accountHandler.Login)
-	r.Run(":8081")
+	r.Run()
 }
