@@ -7,17 +7,29 @@ import (
 	"gorm.io/gorm"
 )
 
+type RequestHandlerInterface interface {
+	GetDataUser(c *gin.Context)
+	GetDataUserById(c *gin.Context)
+	CreateAccount(c *gin.Context)
+	EditDataUser(c *gin.Context)
+	DeleteDataUser(c *gin.Context)
+	Login(c *gin.Context)
+	SendEmail(c *gin.Context)
+	SendEmailRegister(c *gin.Context)
+	CompareVerificationCode(c *gin.Context)
+	EditPassword(c *gin.Context)
+}
 type RequestHandler struct {
-	ctrl *Controller
+	ctrl ControllerInterface
 }
 
-func NewRequestHandler(ctrl *Controller) *RequestHandler {
+func NewRequestHandler(ctrl ControllerInterface) RequestHandlerInterface {
 	return &RequestHandler{
 		ctrl: ctrl,
 	}
 }
 
-func DefaultRequestHandler(db *gorm.DB) *RequestHandler {
+func DefaultRequestHandler(db *gorm.DB) RequestHandlerInterface {
 	return NewRequestHandler(
 		NewController(
 			NewUseCase(
@@ -118,6 +130,84 @@ func (h RequestHandler) Login(c *gin.Context) {
 	c.Writer.Header().Set("Authorization", token)
 	c.JSON(200, res)
 }
-func (h RequestHandler) Logout(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "Berhasil Logout"})
+
+func (h RequestHandler) SendEmail(c *gin.Context) {
+	email := c.Param("email")
+	res, err := h.ctrl.SendEmail(email)
+	if err != nil {
+		c.JSON(401, res)
+	}
+	c.JSON(200, res)
+}
+
+func (h RequestHandler) SendEmailRegister(c *gin.Context) {
+	email := c.Param("email")
+	res, err := h.ctrl.SendEmailRegister(email)
+	if err != nil {
+		c.JSON(401, res)
+	}
+	c.JSON(200, res)
+}
+func (h RequestHandler) CompareVerificationCode(c *gin.Context) {
+	var verificationCodeRequest VerificationCodeRequest
+
+	if err := c.ShouldBindJSON(&verificationCodeRequest); err != nil {
+		c.JSON(500, gin.H{
+			"code":    500,
+			"status":  "Error",
+			"message": "Internal Server Error",
+		})
+		return
+	}
+	res, err := h.ctrl.CompareVerificationCode(&verificationCodeRequest)
+	if err != nil {
+		c.JSON(400, res)
+		return
+	}
+	c.JSON(200, res)
+}
+func (h RequestHandler) EditPassword(c *gin.Context) {
+	var req EditDataUserRequest
+	queryUrl := c.Request.URL.Query()
+	id := queryUrl.Get("id")
+	if id == "" {
+		c.JSON(500, gin.H{
+			"code":    500,
+			"status":  "Error",
+			"message": "Bad Request Id Parameter kosong",
+		})
+		return
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(500, gin.H{
+			"code":    500,
+			"status":  "Error",
+			"message": "Internal Server Error",
+		})
+		return
+	}
+	if req.Id == 0 {
+		c.JSON(400, gin.H{
+			"code":    400,
+			"status":  "Error",
+			"message": "Bad Request id nil",
+		})
+		return
+	}
+
+	code := c.Request.Header.Get("VerificationCode")
+	if code == "" {
+		c.JSON(400, gin.H{
+			"code":    400,
+			"status":  "Error",
+			"message": "Bad Request Verification Code nil",
+		})
+		return
+	}
+
+	res, err := h.ctrl.EditPassword(id, code, &req)
+	if err != nil {
+		c.JSON(500, res)
+	}
+	c.JSON(200, res)
 }

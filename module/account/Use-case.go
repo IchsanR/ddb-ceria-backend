@@ -2,21 +2,21 @@ package account
 
 type UseCaseInterface interface {
 	GetDataUser() ([]Account, error)
-	GetDataUserById(id string) (Account, error)
+	GetDataUserById(id int) (Account, error)
 	EditDataUser(id string, req *Account) (Account, error)
 	DeleteDataUser(id string) (Account, error)
 	CreateAccount(req *Account) (Account, error)
 	Login(req *Account) (string, Account, error)
+	SendEmail(email string) (Account, error)
+	CompareVerificationCode(verificationCode *VerificationCodeRequest) (Account, error)
+	EditPassword(code string, req *Account) (Account, error)
 }
 
 type UseCase struct {
-	Repo UseCaseInterface
+	Repo RepositoryInterface
 }
 
-func NewUseCase(repo *Repository) *UseCase {
-	if repo == nil {
-		return nil
-	}
+func NewUseCase(repo RepositoryInterface) UseCaseInterface {
 	return &UseCase{
 		Repo: repo,
 	}
@@ -29,7 +29,7 @@ func (u UseCase) GetDataUser() ([]Account, error) {
 	}
 	return result, nil
 }
-func (u UseCase) GetDataUserById(id string) (Account, error) {
+func (u UseCase) GetDataUserById(id int) (Account, error) {
 	result, err := u.Repo.GetDataUserById(id)
 	if err != nil {
 		return Account{}, err
@@ -63,4 +63,28 @@ func (u UseCase) Login(req *Account) (string, Account, error) {
 		return string, Account{}, err
 	}
 	return string, result, nil
+}
+
+func (u UseCase) SendEmail(email string) (Account, error) {
+	result, err := u.Repo.SendEmail(email)
+	if err != nil {
+		return Account{}, err
+	}
+	return result, nil
+
+}
+func (u UseCase) CompareVerificationCode(verificationCode *VerificationCodeRequest) (Account, error) {
+	result, err := u.Repo.CompareVerificationCode(verificationCode)
+	if err != nil {
+		return Account{}, err
+	}
+	return result, nil
+
+}
+func (u UseCase) EditPassword(id string, req *Account) (Account, error) {
+	result, err := u.Repo.EditPassword(id, req)
+	if err != nil {
+		return Account{}, err
+	}
+	return result, nil
 }
