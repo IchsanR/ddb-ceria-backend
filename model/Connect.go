@@ -11,7 +11,7 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	dsn := "user=IchsanR password=v7jfgMB6hEPW dbname=neondb host=ep-muddy-boat-134191.us-east-2.aws.neon.tech port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "user=IchsanR password=v7jfgMB6hEPW dbname=neondb host=ep-muddy-boat-134191.us-east-2.aws.neon.tech port=5432 sslmode=verify-full TimeZone=Asia/Shanghai"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{NamingStrategy: schema.NamingStrategy{
 		SingularTable: true,
 	}})
