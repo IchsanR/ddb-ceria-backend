@@ -170,7 +170,7 @@ func (h RequestHandler) EditPassword(c *gin.Context) {
 	var req EditDataUserRequest
 	queryUrl := c.Request.URL.Query()
 	id := queryUrl.Get("id")
-	verificationCode := c.Param(:verificationCode)
+	verificationCode := c.Param("verificationCode")
 	if id == "" {
 		c.JSON(500, gin.H{
 			"code":    500,
